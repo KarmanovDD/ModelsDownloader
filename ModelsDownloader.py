@@ -7,6 +7,7 @@ import random
 import time
 import requests
 import re
+from clint.textui import progress
 from bs4 import BeautifulSoup
 
 def parse_urls_generate_in_file(urlFile):
@@ -96,8 +97,8 @@ def count_lines(filename, chunk_size=1<<13):
     
     
 if __name__ == "__main__":
-    #main_folder_name = r'C:\Users\pervo\Untitled Folder'
-    main_folder_name = os.getcwd()
+    main_folder_name = r'C:\Users\pervo\Untitled Folder'
+    #main_folder_name = os.getcwd()
 
     in_file_name = main_folder_name + "\\NamedURLs.txt"
 
@@ -120,12 +121,16 @@ if __name__ == "__main__":
             out_file_name = in_file.readline().strip()
             
             if(out_file_name[0:3]=="The"):
-                if os.chdir(main_folder_name+ '\/' + out_file_name[3:-1]):
+                if not os.path.exists(main_folder_name+ '\/' + out_file_name[3:-1]):
                     os.mkdir(main_folder_name + '\/' + out_file_name[3:-1])
                 os.chdir(main_folder_name+ '\/' + out_file_name[3:-1])
                 out_file_name = in_file.readline().strip()
                 
             url = in_file.readline()
+            print(("checking: " + out_file_name + " " + url).strip())
+            if idx < files_already_downloaded:
+                print(("Exists: " +out_file_name + " " + url).strip())
+                continue
             if not url.__contains__(".zip"):
                 out_file_name += ".rar"
                 
@@ -133,15 +138,21 @@ if __name__ == "__main__":
                 out_file_name = (str)(random.randint(1,1000000)) + out_file_name
                 
             url = getDirectLink(url)
-            print("trying: " + out_file_name + " " + url)
+            print(("downloading: " + out_file_name + " " + url).strip())
 
-            if idx < files_already_downloaded:
-                continue
 
             headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0'}
-            res = requests.get(url, headers=headers)
+            res = requests.get(url, headers=headers, stream=True)
+            total_size = int(res.headers["Content-Length"])
+            #downloaded = 0 # keep track of size downloaded so far
+            chunkSize = 1024*1024
+            bars = int(total_size / chunkSize)
+            #print(dict(num_bars=bars))
             with open(out_file_name, 'wb') as out_file:
-                out_file.write(res.content)
+                for chunk in progress.mill(res.iter_content(chunk_size=chunkSize), label = "Downloading in progress: ", expected_size=bars + 1):
+                    if chunk:
+                        out_file.write(chunk)
+                        out_file.flush()
                 
             print("{0}: In folder: \"{1}\" file \"{2}\" was downloaded".format(time.ctime(), os.getcwd(), out_file_name))
 
