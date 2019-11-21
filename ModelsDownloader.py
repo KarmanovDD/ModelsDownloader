@@ -97,8 +97,8 @@ def count_lines(filename, chunk_size=1<<13):
     
     
 if __name__ == "__main__":
-    main_folder_name = r'C:\Users\pervo\Untitled Folder'
-    #main_folder_name = os.getcwd()
+    #main_folder_name = r'C:\Users\pervo\Untitled Folder'
+    main_folder_name = os.getcwd()
 
     in_file_name = main_folder_name + "\\NamedURLs.txt"
 
@@ -144,10 +144,8 @@ if __name__ == "__main__":
             headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0'}
             res = requests.get(url, headers=headers, stream=True)
             total_size = int(res.headers["Content-Length"])
-            #downloaded = 0 # keep track of size downloaded so far
             chunkSize = 1024*1024
             bars = int(total_size / chunkSize)
-            #print(dict(num_bars=bars))
             with open(out_file_name, 'wb') as out_file:
                 for chunk in progress.mill(res.iter_content(chunk_size=chunkSize), label = "Downloading in progress: ", expected_size=bars + 1):
                     if chunk:
