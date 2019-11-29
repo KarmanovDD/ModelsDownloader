@@ -94,66 +94,90 @@ def count_lines(filename, chunk_size=1<<13):
         return sum(chunk.count('\n')
                    for chunk in iter(lambda: file.read(chunk_size), ''))
     
+def check_name(name):
+    inappropriateSigns = ['\#', '\<', '\$', '\+', '\%', '\>', '\!', '\`', '\&', '\*', '\\', '\'', 
+                      '\|', '\{', '\?', '\"', '\=', '\}', '\/', '\:', '\-', '\@', '\}']
+    for sign in inappropriateSigns:
+        if name.__contains__(sign):
+            return False
+    return True
     
-    
+
 if __name__ == "__main__":
-    #main_folder_name = r'C:\Users\pervo\Untitled Folder'
-    main_folder_name = os.getcwd()
+    try:
+        #main_folder_name = r'C:\Users\pervo\Untitled Folder'
+        main_folder_name = os.getcwd()
 
-    in_file_name = main_folder_name + "\\NamedURLs.txt"
+        in_file_name = main_folder_name + "\\NamedURLs.txt"
 
-    log_file_name = main_folder_name + "\\log.txt"
-    with open(log_file_name, 'a') as f:
-        pass
-    files_already_downloaded = count_lines(log_file_name)
+        log_file_name = main_folder_name + "\\log.txt"
+        with open(log_file_name, 'a') as f:
+            pass
+        files_already_downloaded = count_lines(log_file_name)
 
-    if not(os.path.exists(in_file_name)):
-        print("beginning parsing")
-        parse_urls_generate_in_file(in_file_name)
-    else:
-        print("Continue downloading" +  " from " + str(files_already_downloaded))
+        if not(os.path.exists(in_file_name)):
+            print("beginning parsing")
+            parse_urls_generate_in_file(in_file_name)
+        else:
+            print("Continue downloading" +  " from " + str(files_already_downloaded))
 
-    total_files_amount = round(count_lines(in_file_name)/2)
+        total_files_amount = round(count_lines(in_file_name)/2)
 
-    print("beginning downloading")
-    with open(in_file_name, 'r') as in_file:
-        for idx in range(total_files_amount):
-            out_file_name = in_file.readline().strip()
-            
-            if(out_file_name[0:3]=="The"):
-                if not os.path.exists(main_folder_name+ '\/' + out_file_name[3:-1]):
-                    os.mkdir(main_folder_name + '\/' + out_file_name[3:-1])
-                os.chdir(main_folder_name+ '\/' + out_file_name[3:-1])
+        print("beginning downloading")
+        with open(in_file_name, 'r') as in_file:
+            for idx in range(total_files_amount):
                 out_file_name = in_file.readline().strip()
-                
-            url = in_file.readline()
-            print(("checking: " + out_file_name + " " + url).strip())
-            if idx < files_already_downloaded:
-                print(("Exists: " +out_file_name + " " + url).strip())
-                continue
-            if not url.__contains__(".zip"):
-                out_file_name += ".rar"
-                
-            if(os.listdir(os.getcwd()).__contains__(out_file_name)):
-                out_file_name = (str)(random.randint(1,1000000)) + out_file_name
-                
-            url = getDirectLink(url)
-            print(("downloading: " + out_file_name + " " + url).strip())
+
+                if(out_file_name[0:3]=="The"):
+                    if not os.path.exists(main_folder_name+ '\/' + out_file_name[3:-1]):
+                        os.mkdir(main_folder_name + '\/' + out_file_name[3:-1])
+                    os.chdir(main_folder_name+ '\/' + out_file_name[3:-1])
+                    out_file_name = in_file.readline().strip()
+
+                url = in_file.readline()
+                print(("checking: " + out_file_name + " " + url).strip())
+                if idx < files_already_downloaded:
+                    print(("Exists: " +out_file_name + " " + url).strip())
+                    continue
+                if not url.__contains__(".zip"):
+                    out_file_name += ".rar"
+                else:
+                    out_file_name += ".zip"
+
+                out_file_name = "\\fasf"
+
+                if not check_name(out_file_name):
+                    out_file_name = (str)(random.randint(1,1000000))
+
+                if(os.listdir(os.getcwd()).__contains__(out_file_name)):
+                    out_file_name = (str)(random.randint(1,1000000)) + out_file_name
+
+                url = getDirectLink(url) + "asca"
+                print(("downloading: " + out_file_name + " " + url).strip())
 
 
-            headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0'}
-            res = requests.get(url, headers=headers, stream=True)
-            total_size = int(res.headers["Content-Length"])
-            chunkSize = 1024*1024
-            bars = int(total_size / chunkSize)
-            with open(out_file_name, 'wb') as out_file:
-                for chunk in progress.mill(res.iter_content(chunk_size=chunkSize), label = "Downloading in progress: ", expected_size=bars + 1):
-                    if chunk:
-                        out_file.write(chunk)
-                        out_file.flush()
-                
-            print("{0}: In folder: \"{1}\" file \"{2}\" was downloaded".format(time.ctime(), os.getcwd(), out_file_name))
+                headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0'}
+                res = requests.get(url, headers=headers, stream=True)
+                get_ipython().run_line_magic('debug', '')
+                total_size = int(res.headers["Content-Length"])
+                chunkSize = 1024*1024
+                bars = int(total_size / chunkSize)
+                with open(out_file_name, 'wb') as out_file:
+                    for chunk in progress.mill(res.iter_content(chunk_size=chunkSize), label = "Downloading in progress: ", expected_size=bars + 1):
+                        if chunk:
+                            out_file.write(chunk)
+                            out_file.flush()
 
-            with open(log_file_name, 'a') as f:
-                f.writelines("{0}: In folder: \"{1}\" file \"{2}\" was downloaded\n".format(time.ctime(), os.getcwd(), out_file_name))
+                print("{0}: In folder: \"{1}\" file \"{2}\" was downloaded".format(time.ctime(), os.getcwd(), out_file_name))
+
+                with open(log_file_name, 'a') as f:
+                    f.writelines("{0}: In folder: \"{1}\" file \"{2}\" was downloaded\n".format(time.ctime(), os.getcwd(), out_file_name))
+    except Exception as e:
+        print(e)
+        os.system('pause')
+                             
+
+
+
+
 
